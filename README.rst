@@ -1,40 +1,20 @@
-pymodaq_plugins_template (??? Instruments)
+pymodaq_plugins_leco (LECO protocol)
 ##########################################
 
 .. the following must be adapted to your developped package, links to pypi, github  description...
 
-.. image:: https://img.shields.io/pypi/v/pymodaq_plugins_thorlabs.svg
-   :target: https://pypi.org/project/pymodaq_plugins_thorlabs/
-   :alt: Latest Version
 
-.. image:: https://readthedocs.org/projects/pymodaq/badge/?version=latest
-   :target: https://pymodaq.readthedocs.io/en/stable/?badge=latest
-   :alt: Documentation Status
-
-.. image:: https://github.com/PyMoDAQ/pymodaq_plugins_thorlabs/workflows/Upload%20Python%20Package/badge.svg
-   :target: https://github.com/PyMoDAQ/pymodaq_plugins_thorlabs
+.. image:: https://github.com/pymeasure/pymodaq_plugins_leco/workflows/Upload%20Python%20Package/badge.svg
+   :target: https://github.com/pymeasure/pymodaq_plugins_leco
    :alt: Publication Status
 
-Set of PyMoDAQ plugins for instruments from ???
+Set of PyMoDAQ plugins for controlling instruments via the Laboratory Experiment Control Protocol ([LECO](https://leco-laboratory-experiment-control-protocol.readthedocs.io/en/latest/))
 
 
 Authors
 =======
 
-* First Author  (myemail@xxx.org)
-* Other author (myotheremail@xxx.org)
-
-.. if needed use this field
-
-    Contributors
-    ============
-
-    * First Contributor
-    * Other Contributors
-
-.. if needed use this field
-
-  Depending on the plugin type, delete/complete the fields below
+* Benedikt Burger  (benedikt.burger@physik.tu-darmstadt.de)
 
 
 Instruments
@@ -79,4 +59,6 @@ Extensions
 Infos
 =====
 
-if needed for installation or other infos
+As LECO is still under development, there is not yet a PyPI package of PyLECO.
+See [PyLECO](https://github.com/pymeasure/pyleco/) for installation information.
+
