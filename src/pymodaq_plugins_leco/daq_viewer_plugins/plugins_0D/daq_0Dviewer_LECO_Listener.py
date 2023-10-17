@@ -4,23 +4,25 @@ from pymodaq.utils.data import DataFromPlugins, DataToExport
 from pymodaq.control_modules.viewer_utility_classes import DAQ_Viewer_base, comon_parameters, main
 from pymodaq.utils.parameter import Parameter
 
-
-class PythonWrapperOfYourInstrument:
-    #  TODO Replace this fake class with the import of the real python wrapper of your instrument
-    pass
+from pyleco.utils.listener import Listener
 
 
-class DAQ_0DViewer_Template(DAQ_Viewer_base):
-    """
+class DAQ_0DViewer_LECO_Listener(DAQ_Viewer_base):
+    """Viewer for data published via LECO data protocol.
+
+    Note: This viewer uses the not yet defined data protocol, which will change most probably in the future.
     """
     params = comon_parameters+[
+        {'title': 'Variable:', 'name': 'variable', 'type': 'str', 'value': "variable", 'text': 'Variable to listen to.'},
+        {'title': 'Listener name', 'name': 'listener_name', 'type': 'str', 'value': "listener"},
         ## TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
         ]
+    live_mode_available = True
 
     def ini_attributes(self):
         #  TODO declare the type of the wrapper (and assign it to self.controller) you're going to use for easy
         #  autocompletion
-        self.controller: PythonWrapperOfYourInstrument = None
+        self.controller: QtListener = None
 
         #TODO declare here attributes you want/need to init with a default value
         pass
@@ -34,10 +36,9 @@ class DAQ_0DViewer_Template(DAQ_Viewer_base):
             A given parameter (within detector_settings) whose value has been changed by the user
         """
         ## TODO for your custom plugin
-        if param.name() == "a_parameter_you've_added_in_self.params":
-           self.controller.your_method_to_apply_this_param_change()  # when writing your own plugin replace this line
-#        elif ...
-        ##
+        if param.name() == "variable":
+           self.controller.unsubscribe_all()
+           self.controller.subscribe([param.value()])
 
     def ini_detector(self, controller=None):
         """Detector communication initialization
@@ -55,28 +56,36 @@ class DAQ_0DViewer_Template(DAQ_Viewer_base):
             False if initialization failed otherwise True
         """
 
-        raise NotImplemented  # TODO when writing your own plugin remove this line and modify the one below
         self.ini_detector_init(old_controller=controller,
-                               new_controller=PythonWrapperOfYourInstrument())
+                               new_controller=Listener(name=self.settings['listener_name']))
+        self.controller.start_listen()
+        self.controller.message_handler.handle_subscription_data = self.show_received_data
+        self._live_state = False
 
-        # TODO for your custom plugin (optional) initialize viewers panel with the future type of data
-        self.dte_signal_temp.emit(DataToExport(name='myplugin',
-                                               data=DataFromPlugins(name='Mock1',
-                                                                    data=[np.array([0]), np.array([0])],
-                                                                    dim='Data0D',
-                                                                    labels=['Mock1', 'label2'])))
+        variable = self.settings["variable"]
+
+        self.controller.subscribe([variable])
 
         info = "Whatever info you want to log"
-        initialized = self.controller.a_method_or_atttribute_to_check_if_init()  # TODO
+        initialized = True  # self.controller.a_method_or_atttribute_to_check_if_init()  # TODO
         return info, initialized
 
     def close(self):
         """Terminate the communication protocol"""
-        ## TODO for your custom plugin
-        raise NotImplemented  # when writing your own plugin remove this line
-        #  self.controller.your_method_to_terminate_the_communication()  # when writing your own plugin replace this line
+        self.controller.stop_listen()
 
-    def grab_data(self, Naverage=1, **kwargs):
+    def show_received_data(self, data):
+        """Show the data received on the Viewer emitting an appropriate signal."""
+        for key, value in data.items():
+            self.dte_signal.emit(DataToExport(name=key, data=[DataFromPlugins(
+                name=key,
+                data=[np.array([value])],
+                dim='Data0D',
+                )]))
+        if self._live_state is False:
+            self.controller.unsubscribe_all()
+
+    def grab_data(self, Naverage=1, live=False, **kwargs):
         """Start a grab from the detector
 
         Parameters
@@ -87,34 +96,13 @@ class DAQ_0DViewer_Template(DAQ_Viewer_base):
         kwargs: dict
             others optionals arguments
         """
-        ## TODO for your custom plugin
-
-        # synchrone version (blocking function)
-        raise NotImplemented  # when writing your own plugin remove this line
-        data_tot = self.controller.your_method_to_start_a_grab_snap()
-        self.dte_signal.emit(DataToExport(name='myplugin',
-                                          data=[DataFromPlugins(name='Mock1', data=data_tot,
-                                                                dim='Data0D', labels=['dat0', 'data1'])]))
-        #########################################################
-
-        # asynchrone version (non-blocking function with callback)
-        raise NotImplemented  # when writing your own plugin remove this line
-        self.controller.your_method_to_start_a_grab_snap(self.callback)  # when writing your own plugin replace this line
-        #########################################################
-
-
-    def callback(self):
-        """optional asynchrone method called when the detector has finished its acquisition of data"""
-        data_tot = self.controller.your_method_to_get_data_from_buffer()
-        self.dte_signal.emit(DataToExport(name='myplugin',
-                                          data=[DataFromPlugins(name='Mock1', data=data_tot,
-                                                                dim='Data0D', labels=['dat0', 'data1'])]))
+        self._live_state = live
+        variable = self.settings["variable"]
+        self.controller.subscribe([variable])
 
     def stop(self):
         """Stop the current grab hardware wise if necessary"""
-        ## TODO for your custom plugin
-        raise NotImplemented  # when writing your own plugin remove this line
-        self.controller.your_method_to_stop_acquisition()  # when writing your own plugin replace this line
+        self.controller.unsubscribe_all()
         self.emit_status(ThreadCommand('Update_Status', ['Some info you want to log']))
         ##############################
         return ''
