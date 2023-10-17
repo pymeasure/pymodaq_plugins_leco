@@ -10,7 +10,7 @@ class PythonWrapperOfYourInstrument:
     pass
 
 
-class DAQ_Move_Trinamic(DAQ_Move_base):
+class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
     """Plugin for the Trinamic motor cards via LECO protocol
 
     This object inherits all functionality to communicate with PyMoDAQ Module through inheritance via DAQ_Move_base
