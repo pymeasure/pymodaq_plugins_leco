@@ -8,7 +8,7 @@ pymodaq_plugins_leco (LECO protocol)
    :target: https://github.com/pymeasure/pymodaq_plugins_leco
    :alt: Publication Status
 
-Set of PyMoDAQ plugins for controlling instruments via the Laboratory Experiment Control Protocol ([LECO](https://leco-laboratory-experiment-control-protocol.readthedocs.io/en/latest/)).
+Set of PyMoDAQ plugins for controlling instruments via the Laboratory Experiment Control Protocol (`LECO <https://leco-laboratory-experiment-control-protocol.readthedocs.io/en/latest/>`_).
 
 
 Authors
@@ -48,5 +48,5 @@ Infos
 The Actuators and Viewers of this plugin use the LECO protocol to control or read devices.
 
 As LECO is still under development, there is not yet a PyPI package of PyLECO.
-See [PyLECO](https://github.com/pymeasure/pyleco/) for installation information.
+See `PyLECO <https://github.com/pymeasure/pyleco/>`_ for installation information.
 
