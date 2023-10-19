@@ -5,10 +5,6 @@ from pymodaq.utils.parameter import Parameter
 
 from pyleco.directors.motor_director import MotorDirector
 
-class PythonWrapperOfYourInstrument:
-    #  TODO Replace this fake class with the import of the real python wrapper of your instrument
-    pass
-
 
 class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
     """Plugin for the Trinamic motor cards via LECO protocol
@@ -34,6 +30,7 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
     params = [
         # TODO for your custom plugin: elements to be added here as dicts in order to control your custom stage
         {'title': 'Actor name:', 'name': 'actor_name', 'type': 'str', 'value': "actor_name", 'text': 'Name of the actor to communicate with.'},
+        {'title': 'Use units:', 'name': "use_units", 'type': "bool", 'value': False, 'text': "Use the units given by the motor card."}
     ] + comon_parameters_fun(is_multiaxes, axes_names, epsilon=_epsilon)
 
     def ini_attributes(self):
@@ -46,8 +43,11 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
         -------
         float: The position obtained after scaling conversion.
         """
-        pos = self.controller.get_actual_position(self.settings['multiaxes', 'axis'])
-        pos = self.get_position_with_scaling(pos)
+        if self.settings["use_units"]:
+            pos = self.controller.get_actual_units(self.settings['multiaxes', 'axis'])
+        else:
+            pos = self.controller.get_actual_position(self.settings['multiaxes', 'axis'])
+            pos = self.get_position_with_scaling(pos)
         return pos
 
     def close(self):
@@ -64,6 +64,8 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
         """
         if param.name() == "actor_name":
            self.controller.actor = param.value()
+        elif param.name() == "use_units":
+            self._controller_units = "units" if param.value() else "steps"
         else:
             pass
 
@@ -81,8 +83,12 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
         initialized: bool
             False if initialization failed otherwise True
         """
+        communicator = controller.communicator if controller is not None else None
 
-        self.controller = self.ini_stage_init(old_controller=controller, new_controller=MotorDirector(actor=self.settings["actor_name"]))
+        self.controller = self.ini_stage_init(
+            old_controller=controller,
+            new_controller=MotorDirector(actor=self.settings["actor_name"],
+                                         communicator=communicator))
 
         info = "Whatever info you want to log"
         initialized = True  # TODO return whether communication works
@@ -100,7 +106,10 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
         self.target_value = value
         value = self.set_position_with_scaling(value)  # apply scaling if the user specified one
 
-        self.controller.move_to(self.settings['multiaxes', 'axis'], value)
+        if self.setting["use_units"]:
+            self.controller.move_to_units(self.settings['multiaxes', 'axis'], value)
+        else:
+            self.controller.move_to(self.settings['multiaxes', 'axis'], value)
 
         return
         ## TODO for your custom plugin
@@ -117,7 +126,10 @@ class DAQ_Move_LECO_Trinamic(DAQ_Move_base):
         self.target_value = value + self.current_position
         value = self.set_position_relative_with_scaling(value)
 
-        self.controller.move_by(self.settings['multiaxes', 'axis'], value)
+        if self.setting["use_units"]:
+            self.controller.move_by_units(self.settings['multiaxes', 'axis'], value)
+        else:
+            self.controller.move_by(self.settings['multiaxes', 'axis'], value)
 
         return
         ## TODO for your custom plugin
